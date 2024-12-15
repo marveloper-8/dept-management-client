@@ -1,22 +1,35 @@
 import { ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context'
-import { getSession } from "next-auth/react";
 
 const httpLink = createHttpLink({
-    uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT
-})
-
-const authLink = setContext(async (_, {headers}) => {
-    const session: any = await getSession()
+    uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT,
+  });
+  
+  const authLink = setContext((_, { headers }) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    
     return {
-        headers: {
-            ...headers,
-            authorization: session?.accessToken ? `Bearer ${session?.accessToken}` : "",
-        }
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      }
     }
-})
-
-export const apolloClient = new ApolloClient({
-    link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
-})
+  });
+  
+  export function createApolloClient() {
+    return new ApolloClient({
+      link: authLink.concat(httpLink),
+      cache: new InMemoryCache(),
+    });
+  }
+  
+  export function useApollo(initialState = null) {
+    const client = createApolloClient();
+    
+    if (initialState) {
+      client.cache.restore(initialState);
+    }
+    
+    return client;
+  }
+  
