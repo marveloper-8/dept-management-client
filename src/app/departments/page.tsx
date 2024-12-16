@@ -16,7 +16,7 @@ export default function DepartmentsPage() {
       variables: { limit: 10, offset: 0 }
     });
   
-    const [deleteDepartment, {deleteLoading}] = useMutation(DELETE_DEPARTMENT, {
+    const [deleteDepartment] = useMutation(DELETE_DEPARTMENT, {
       onCompleted: () => refetch()
     });
   
