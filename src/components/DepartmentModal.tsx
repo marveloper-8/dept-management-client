@@ -1,7 +1,9 @@
 import { CREATE_DEPARTMENT, UPDATE_DEPARTMENT } from "@/graphql/mutations";
 import { useMutation } from "@apollo/client";
 import { FC, useState } from "react";
-import { FaPencil } from "react-icons/fa6";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaSave, FaTimes } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa6";
 
 const DepartmentModal: FC<any> = ({ department, onClose, onSuccess }) => {
     const [name, setName] = useState(department?.name || '');
@@ -25,7 +27,6 @@ const DepartmentModal: FC<any> = ({ department, onClose, onSuccess }) => {
         .map((name: any) => ({ name }));
   
       if (department) {
-        // Update existing department
         updateDepartment({ 
           variables: { 
             id: Number(department.id), 
@@ -33,7 +34,6 @@ const DepartmentModal: FC<any> = ({ department, onClose, onSuccess }) => {
           } 
         });
       } else {
-        // Create new department
         createDepartment({ 
           variables: { 
             input: { 
@@ -46,71 +46,111 @@ const DepartmentModal: FC<any> = ({ department, onClose, onSuccess }) => {
     };
   
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-4">
-            {department ? 'Edit Department' : 'Create Department'}
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Department Name</label>
-              <input
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4"
+      >
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        >
+          <div className="bg-blue-500 text-white p-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold">
+              {department ? 'Edit Department' : 'Create Department'}
+            </h2>
+            <motion.button
+              whileHover={{ rotate: 90 }}
+              onClick={onClose}
+              className="text-white hover:text-blue-100"
+            >
+              <FaTimes size={24} />
+            </motion.button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div>
+              <label className="block text-gray-700 mb-2 font-medium">Department Name</label>
+              <motion.input
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 required
+                placeholder="Enter department name"
               />
             </div>
   
             {!department && (
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Sub-Departments</label>
-                {subDepartments.map((sd: any, index: number) => (
-                  <div key={index} className="flex mb-2">
-                    <input
-                      type="text"
-                      value={sd}
-                      onChange={(e) => {
-                        const newSubs = [...subDepartments];
-                        newSubs[index] = e.target.value;
-                        setSubDepartments(newSubs);
-                      }}
-                      className="w-full px-3 py-2 border rounded mr-2"
-                      placeholder="Sub-Department Name"
-                    />
-                    {index === subDepartments.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setSubDepartments([...subDepartments, ''])}
-                        className="bg-green-500 text-white px-3 py-2 rounded"
-                      >
-                        <FaPencil size={20} />
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">Sub-Departments</label>
+                <AnimatePresence>
+                  {subDepartments.map((sd: any, index: number) => (
+                    <motion.div 
+                      key={index} 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="flex mb-2 space-x-2"
+                    >
+                      <input
+                        type="text"
+                        value={sd}
+                        onChange={(e) => {
+                          const newSubs = [...subDepartments];
+                          newSubs[index] = e.target.value;
+                          setSubDepartments(newSubs);
+                        }}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="Sub-Department Name"
+                      />
+                      {index === subDepartments.length - 1 && (
+                        <motion.button
+                          type="button"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setSubDepartments([...subDepartments, ''])}
+                          className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition"
+                        >
+                          <FaPlus size={20} />
+                        </motion.button>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
   
-            <div className="flex justify-end space-x-2">
-              <button
+            <div className="flex justify-end space-x-4">
+              <motion.button
                 type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                className="px-5 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition flex items-center"
               >
-                Cancel
-              </button>
-              <button
+                <FaTimes className="mr-2" /> Cancel
+              </motion.button>
+              <motion.button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center"
               >
+                <FaSave className="mr-2" />
                 {department ? 'Update' : 'Create'}
-              </button>
+              </motion.button>
             </div>
           </form>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
 }
 

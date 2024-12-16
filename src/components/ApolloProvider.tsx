@@ -1,7 +1,8 @@
 'use client';
 
-import { ApolloClient, ApolloProvider as BaseApolloProvider, InMemoryCache, createHttpLink } from '@apollo/client';
+import { ApolloClient, ApolloLink, ApolloProvider as BaseApolloProvider, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error'
 import { ReactNode } from 'react';
 
 const httpLink = createHttpLink({
@@ -19,8 +20,27 @@ const authLink = setContext((_, { headers }) => {
   }
 });
 
+const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+  if (graphQLErrors) {
+    for (let err of graphQLErrors) {
+      if (err.extensions?.code === 'UNAUTHENTICATED' || err.message.includes('token')) {
+        localStorage.removeItem('access_token');
+        window.location.href = '/login';
+        return;
+      }
+    }
+  }
+
+  if (networkError) {
+    console.error('[Network Error]:', networkError);
+    localStorage.removeItem('access_token');
+    window.location.href = '/login';
+  }
+});
+
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  // link: authLink.concat(httpLink),
+  link: ApolloLink.from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
 });
 
