@@ -6,11 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FC, FormEvent, useState } from "react";
 
-interface LoginFormProps {
-    onLoginSuccess?: () => void;
-}
-
-const LoginPage: FC<LoginFormProps> = ({ onLoginSuccess }) => {
+const LoginPage: FC<any> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('testuser');
     const [password, setPassword] = useState('password123');
     const [error, setError] = useState<string | null>(null);
